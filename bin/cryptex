@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+$:.push File.expand_path("../../lib", __FILE__)
+
+require 'cryptex'
+require 'commander'
+
+HighLine.track_eof = false
+
+class CryptexApplication
+  include Commander::Methods
+
+  def run
+    program :version, Cryptex::VERSION
+    program :description, 'Cryptex repo manager'
+    program :help, 'Author', 'helmut@januschka.com'
+    program :help, 'Website', 'https://github.com/hjanuschka/cryptex'
+    program :help, 'GitHub', 'https://github.com/hjanuschka/cryptex'
+    program :help_formatter, :compact
+
+    global_option('--verbose', 'Shows a more verbose output') { $verbose = true }
+
+    always_trace!
+
+    default_command :run
+
+    command :run do |c|
+      c.syntax = 'cryptex'
+      c.description = Match::DESCRIPTION
+
+      c.action do |args, options|
+        if args.count > 0
+          FastlaneCore::UI.user_error!("Please run `cryptex [type]`, allowed values: development, adhoc or appstore")
+        end
+
+        params = FastlaneCore::Configuration.create(Match::Options.available_options, options.__hash__)
+        params.load_configuration_file("Matchfile")
+        Cryptex::Runner.new.run(params)
+      end
+    end
+end
+
+
+begin
+  FastlaneCore::UpdateChecker.start_looking_for_update('cryptex')
+  CryptexApplication.new.run
+ensure
+  FastlaneCore::UpdateChecker.show_update_status('cryptex', Cryptex::VERSION)
+end
