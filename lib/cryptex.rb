@@ -1,5 +1,5 @@
 require 'cryptex/version'
-require 'cryptex/runner'
+require 'cryptex/commands_generator'
 #
 require 'fastlane_core'
 #
